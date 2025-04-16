@@ -23,7 +23,14 @@ public class ProducerConsumer {
 
         // 生产者放入产品
         public void produce(int producerId, int item) throws InterruptedException {
+            if (empty.availablePermits() == 0) {
+                System.out.println("Producer " + producerId + " is waiting: Buffer is full.");
+            }
             empty.acquire(); // 减少一个空缓冲区
+
+            if (mutex.availablePermits() == 0) {
+                System.out.println("Producer " + producerId + " is waiting: Mutex is locked.");
+            }
             mutex.acquire(); // 进入临界区
             try {
                 buffer.add(item);
@@ -37,7 +44,14 @@ public class ProducerConsumer {
 
         // 消费者取出产品
         public int consume(int consumerId) throws InterruptedException {
+            if (full.availablePermits() == 0) {
+                System.out.println("Consumer " + consumerId + " is waiting: Buffer is empty.");
+            }
             full.acquire(); // 减少一个占用缓冲区
+
+            if (mutex.availablePermits() == 0) {
+                System.out.println("Consumer " + consumerId + " is waiting: Mutex is locked.");
+            }
             mutex.acquire(); // 进入临界区
             try {
                 int item = buffer.removeFirst();
@@ -96,7 +110,9 @@ public class ProducerConsumer {
                 while (true) {
                     Thread.sleep((long) (Math.random() * 2000 + 1000)); // 模拟消费时间 (1-3秒)
                     buffer.consume(consumerId); // 消费一个产品
+
                 }
+
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
